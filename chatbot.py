@@ -60,31 +60,91 @@ class GA4Chatbot:
         }
 
         # Tarih pattern'leri - kapsamli Turkce tarih ifadeleri
+        # NOT: Daha spesifik pattern'ler (hafta sonu gibi) once tanimlanmali
         self.date_patterns = {
+            # === HAFTA SONU (ONCE TANIMLANMALI - daha spesifik) ===
+            r"ge[cçcs]en\s*hafta\s*sonu": "last_weekend",
+            r"ge[cçcs][cçct]i[gğ]imiz\s*hafta\s*sonu": "last_weekend",
+            r"gecen\s*hafta\s*sonu": "last_weekend",
+            r"[oö]nceki\s*hafta\s*sonu": "last_weekend",
+            r"bu\s*hafta\s*sonu": "this_weekend",
+            r"haftasonu": "last_weekend",
+
             # === BUGUN ===
             r"bug[uü]n": "today",
             r"bug[uü]nk[uü]": "today",
             r"g[uü]n[uü]m[uü]z": "today",
             r"bug[uü]ne\s*kadar": "today",
             r"bug[uü]n\s*i[cç]in": "today",
+            r"bug[uü]n\s*itibariyle": "today",
+            r"[sş]u\s*an": "today",
+            r"[sş]imdi": "today",
+            r"[sş]imdiye\s*kadar": "today",
+            r"anlık": "today",
+            r"anlik": "today",
 
             # === DUN ===
             r"d[uü]n": "yesterday",
             r"d[uü]nk[uü]": "yesterday",
+            r"bir\s*g[uü]n\s*[oö]nce": "yesterday",
+            r"1\s*g[uü]n\s*[oö]nce": "yesterday",
             r"bir\s*[oö]nceki\s*g[uü]n": "yesterday",
-            r"evvelki\s*g[uü]n": "2daysAgo",  # evvelki gun = 2 gun once
+            r"ge[cç]en\s*g[uü]n": "yesterday",
+
+            # === EVVELKI GUN (2 gun once) ===
+            r"evvelki\s*g[uü]n": "2daysAgo",
+            r"evvelsi\s*g[uü]n": "2daysAgo",
+            r"iki\s*g[uü]n\s*[oö]nce": "2daysAgo",
+            r"2\s*g[uü]n\s*[oö]nce": "2daysAgo",
+
+            # === X GUN ONCE ===
+            r"3\s*g[uü]n\s*[oö]nce": "3daysAgo",
+            r"[uü][cç]\s*g[uü]n\s*[oö]nce": "3daysAgo",
+            r"4\s*g[uü]n\s*[oö]nce": "4daysAgo",
+            r"d[oö]rt\s*g[uü]n\s*[oö]nce": "4daysAgo",
+            r"5\s*g[uü]n\s*[oö]nce": "5daysAgo",
+            r"be[sş]\s*g[uü]n\s*[oö]nce": "5daysAgo",
+            r"bir\s*hafta\s*[oö]nce": "7daysAgo",
+            r"1\s*hafta\s*[oö]nce": "7daysAgo",
+            r"iki\s*hafta\s*[oö]nce": "14daysAgo",
+            r"2\s*hafta\s*[oö]nce": "14daysAgo",
+            r"bir\s*ay\s*[oö]nce": "30daysAgo",
+            r"1\s*ay\s*[oö]nce": "30daysAgo",
+            r"iki\s*ay\s*[oö]nce": "60daysAgo",
+            r"2\s*ay\s*[oö]nce": "60daysAgo",
 
             # === SON X GUN ===
+            r"son\s*1\s*g[uü]n": "1daysAgo",
+            r"son\s*bir\s*g[uü]n": "1daysAgo",
             r"son\s*2\s*g[uü]n": "2daysAgo",
+            r"son\s*iki\s*g[uü]n": "2daysAgo",
             r"son\s*3\s*g[uü]n": "3daysAgo",
+            r"son\s*[uü][cç]\s*g[uü]n": "3daysAgo",
+            r"son\s*4\s*g[uü]n": "4daysAgo",
+            r"son\s*d[oö]rt\s*g[uü]n": "4daysAgo",
             r"son\s*5\s*g[uü]n": "5daysAgo",
+            r"son\s*be[sş]\s*g[uü]n": "5daysAgo",
+            r"son\s*6\s*g[uü]n": "6daysAgo",
+            r"son\s*alt[iı]\s*g[uü]n": "6daysAgo",
             r"son\s*7\s*g[uü]n": "7daysAgo",
+            r"son\s*yedi\s*g[uü]n": "7daysAgo",
             r"son\s*10\s*g[uü]n": "10daysAgo",
+            r"son\s*on\s*g[uü]n": "10daysAgo",
             r"son\s*14\s*g[uü]n": "14daysAgo",
             r"son\s*15\s*g[uü]n": "15daysAgo",
+            r"son\s*on\s*be[sş]\s*g[uü]n": "15daysAgo",
+            r"son\s*20\s*g[uü]n": "20daysAgo",
+            r"son\s*yirmi\s*g[uü]n": "20daysAgo",
             r"son\s*30\s*g[uü]n": "30daysAgo",
+            r"son\s*otuz\s*g[uü]n": "30daysAgo",
+            r"son\s*45\s*g[uü]n": "45daysAgo",
             r"son\s*60\s*g[uü]n": "60daysAgo",
+            r"son\s*altm[iı][sş]\s*g[uü]n": "60daysAgo",
             r"son\s*90\s*g[uü]n": "90daysAgo",
+            r"son\s*doksan\s*g[uü]n": "90daysAgo",
+            r"son\s*120\s*g[uü]n": "120daysAgo",
+            r"son\s*180\s*g[uü]n": "180daysAgo",
+            r"son\s*365\s*g[uü]n": "365daysAgo",
 
             # === SON X HAFTA ===
             r"son\s*bir?\s*hafta": "7daysAgo",
@@ -95,6 +155,12 @@ class GA4Chatbot:
             r"son\s*[uü][cç]\s*hafta": "21daysAgo",
             r"son\s*4\s*hafta": "28daysAgo",
             r"son\s*d[oö]rt\s*hafta": "28daysAgo",
+            r"son\s*5\s*hafta": "35daysAgo",
+            r"son\s*be[sş]\s*hafta": "35daysAgo",
+            r"son\s*6\s*hafta": "42daysAgo",
+            r"son\s*alt[iı]\s*hafta": "42daysAgo",
+            r"son\s*8\s*hafta": "56daysAgo",
+            r"son\s*sekiz\s*hafta": "56daysAgo",
 
             # === SON X AY ===
             r"son\s*bir?\s*ay": "30daysAgo",
@@ -103,12 +169,23 @@ class GA4Chatbot:
             r"son\s*iki\s*ay": "60daysAgo",
             r"son\s*3\s*ay": "90daysAgo",
             r"son\s*[uü][cç]\s*ay": "90daysAgo",
+            r"son\s*4\s*ay": "120daysAgo",
+            r"son\s*d[oö]rt\s*ay": "120daysAgo",
+            r"son\s*5\s*ay": "150daysAgo",
+            r"son\s*be[sş]\s*ay": "150daysAgo",
             r"son\s*6\s*ay": "180daysAgo",
-            r"son\s*alt[i,ı]\s*ay": "180daysAgo",
+            r"son\s*alt[iı]\s*ay": "180daysAgo",
+            r"son\s*yar[iı]m?\s*y[iı]l": "180daysAgo",
+            r"son\s*9\s*ay": "270daysAgo",
+            r"son\s*dokuz\s*ay": "270daysAgo",
+            r"son\s*12\s*ay": "365daysAgo",
+            r"son\s*on\s*iki\s*ay": "365daysAgo",
 
             # === SON X YIL ===
-            r"son\s*bir?\s*y[i,ı]l": "365daysAgo",
-            r"son\s*1\s*y[i,ı]l": "365daysAgo",
+            r"son\s*bir?\s*y[iı]l": "365daysAgo",
+            r"son\s*1\s*y[iı]l": "365daysAgo",
+            r"son\s*2\s*y[iı]l": "730daysAgo",
+            r"son\s*iki\s*y[iı]l": "730daysAgo",
 
             # === GECEN/GECTIGIMIZ HAFTA ===
             r"ge[cçcs][cçct]i[gğ]imiz\s*hafta": "last_week",
@@ -117,6 +194,7 @@ class GA4Chatbot:
             r"bir\s*[oö]nceki\s*hafta": "last_week",
             r"gecen\s*hafta": "last_week",
             r"gectigimiz\s*hafta": "last_week",
+            r"evvelki\s*hafta": "last_week",
 
             # === GECEN/GECTIGIMIZ AY ===
             r"ge[cçcs][cçct]i[gğ]imiz\s*ay": "last_month",
@@ -125,28 +203,76 @@ class GA4Chatbot:
             r"bir\s*[oö]nceki\s*ay": "last_month",
             r"gecen\s*ay": "last_month",
             r"gectigimiz\s*ay": "last_month",
+            r"evvelki\s*ay": "last_month",
 
             # === BU HAFTA / BU AY ===
             r"bu\s*hafta": "this_week",
             r"bu\s*ay": "this_month",
             r"i[cç]inde\s*bulundu[gğ]umuz\s*hafta": "this_week",
             r"i[cç]inde\s*bulundu[gğ]umuz\s*ay": "this_month",
+            r"icinde\s*bulundugumuz\s*hafta": "this_week",
+            r"icinde\s*bulundugumuz\s*ay": "this_month",
             r"mevcut\s*hafta": "this_week",
             r"mevcut\s*ay": "this_month",
+            r"haftanın\s*ba[sş][iı]ndan": "this_week",
+            r"haftanin\s*basindan": "this_week",
+            r"ay[iı]n\s*ba[sş][iı]ndan": "this_month",
+            r"ayin\s*basindan": "this_month",
 
             # === BU YIL / GECEN YIL ===
             r"bu\s*y[iı]l": "this_year",
+            r"bu\s*sene": "this_year",
+            r"y[iı]l[iı]n\s*ba[sş][iı]ndan": "this_year",
+            r"yilin\s*basindan": "this_year",
+            r"ocaktan\s*beri": "this_year",
+            r"ocaktan\s*itibaren": "this_year",
             r"ge[cçcs]en\s*y[iı]l": "last_year",
+            r"ge[cçcs]en\s*sene": "last_year",
             r"ge[cçcs][cçct]i[gğ]imiz\s*y[iı]l": "last_year",
+            r"ge[cçcs][cçct]i[gğ]imiz\s*sene": "last_year",
             r"[oö]nceki\s*y[iı]l": "last_year",
+            r"[oö]nceki\s*sene": "last_year",
             r"gecen\s*yil": "last_year",
+            r"gecen\s*sene": "last_year",
             r"gectigimiz\s*yil": "last_year",
+            r"bir\s*y[iı]l\s*[oö]nceki": "last_year",
 
-            # === HAFTA SONU / HAFTA ICI ===
-            r"ge[cçcs]en\s*hafta\s*sonu": "last_weekend",
-            r"ge[cçcs][cçct]i[gğ]imiz\s*hafta\s*sonu": "last_weekend",
-            r"gecen\s*hafta\s*sonu": "last_weekend",
-            r"bu\s*hafta\s*sonu": "this_weekend",
+            # === CEYREKLER (QUARTERS) ===
+            r"bu\s*[cç]eyrek": "this_quarter",
+            r"ge[cç]en\s*[cç]eyrek": "last_quarter",
+            r"[oö]nceki\s*[cç]eyrek": "last_quarter",
+            r"ilk\s*[cç]eyrek": "q1",
+            r"birinci\s*[cç]eyrek": "q1",
+            r"1\.?\s*[cç]eyrek": "q1",
+            r"ikinci\s*[cç]eyrek": "q2",
+            r"2\.?\s*[cç]eyrek": "q2",
+            r"[uü][cç][uü]nc[uü]\s*[cç]eyrek": "q3",
+            r"3\.?\s*[cç]eyrek": "q3",
+            r"d[oö]rd[uü]nc[uü]\s*[cç]eyrek": "q4",
+            r"4\.?\s*[cç]eyrek": "q4",
+            r"son\s*[cç]eyrek": "last_quarter",
+            r"q1": "q1",
+            r"q2": "q2",
+            r"q3": "q3",
+            r"q4": "q4",
+
+            # === AY ISIMLERI (tek basina) ===
+            r"\bocak\s*ay[iı]?\b": "january",
+            r"\b[sş]ubat\s*ay[iı]?\b": "february",
+            r"\bmart\s*ay[iı]?\b": "march",
+            r"\bnisan\s*ay[iı]?\b": "april",
+            r"\bmay[iı]s\s*ay[iı]?\b": "may",
+            r"\bhaziran\s*ay[iı]?\b": "june",
+            r"\btemmuz\s*ay[iı]?\b": "july",
+            r"\ba[gğ]ustos\s*ay[iı]?\b": "august",
+            r"\beyl[uü]l\s*ay[iı]?\b": "september",
+            r"\bekim\s*ay[iı]?\b": "october",
+            r"\bkas[iı]m\s*ay[iı]?\b": "november",
+            r"\baral[iı]k\s*ay[iı]?\b": "december",
+
+            # === OZEL GUNLER ===
+            r"yeni\s*y[iı]l": "new_year",
+            r"y[iı]lba[sş][iı]": "new_year",
         }
 
         # Sorgu intent'leri - DIKKAT: Daha spesifik intent'ler once tanimlanmali
@@ -704,6 +830,75 @@ class GA4Chatbot:
                         this_saturday = today - timedelta(days=today.weekday()-5) if today.weekday() == 6 else today
                         this_sunday = this_saturday + timedelta(days=1)
                     return this_saturday.strftime("%Y-%m-%d"), this_sunday.strftime("%Y-%m-%d")
+
+                # === BU CEYREK ===
+                elif date_value == "this_quarter":
+                    quarter = (today.month - 1) // 3 + 1
+                    quarter_start_month = (quarter - 1) * 3 + 1
+                    start = datetime(today.year, quarter_start_month, 1)
+                    return start.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")
+
+                # === GECEN CEYREK ===
+                elif date_value == "last_quarter":
+                    quarter = (today.month - 1) // 3 + 1
+                    if quarter == 1:
+                        # Q1'de isek gecen ceyrek Q4 (gecen yil)
+                        start = datetime(today.year - 1, 10, 1)
+                        end = datetime(today.year - 1, 12, 31)
+                    else:
+                        prev_quarter = quarter - 1
+                        start_month = (prev_quarter - 1) * 3 + 1
+                        end_month = prev_quarter * 3
+                        start = datetime(today.year, start_month, 1)
+                        # Ayin son gunu
+                        if end_month == 12:
+                            end = datetime(today.year, 12, 31)
+                        else:
+                            end = datetime(today.year, end_month + 1, 1) - timedelta(days=1)
+                    return start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
+
+                # === SPESIFIK CEYREKLER (Q1, Q2, Q3, Q4) ===
+                elif date_value in ["q1", "q2", "q3", "q4"]:
+                    quarter_num = int(date_value[1])
+                    start_month = (quarter_num - 1) * 3 + 1
+                    end_month = quarter_num * 3
+                    year = today.year
+                    # Eger ceyrek henuz gelmemisse gecen yili kullan
+                    if start_month > today.month:
+                        year -= 1
+                    start = datetime(year, start_month, 1)
+                    if end_month == 12:
+                        end = datetime(year, 12, 31)
+                    else:
+                        end = datetime(year, end_month + 1, 1) - timedelta(days=1)
+                    return start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
+
+                # === AY ISIMLERI ===
+                elif date_value in ["january", "february", "march", "april", "may", "june",
+                                    "july", "august", "september", "october", "november", "december"]:
+                    month_map = {
+                        "january": 1, "february": 2, "march": 3, "april": 4,
+                        "may": 5, "june": 6, "july": 7, "august": 8,
+                        "september": 9, "october": 10, "november": 11, "december": 12
+                    }
+                    month = month_map[date_value]
+                    year = today.year
+                    # Eger ay henuz gelmemisse veya su an o aydaysak bu yil, yoksa gecen yil
+                    if month > today.month:
+                        year -= 1
+                    start = datetime(year, month, 1)
+                    if month == 12:
+                        end = datetime(year, 12, 31)
+                    else:
+                        end = datetime(year, month + 1, 1) - timedelta(days=1)
+                    return start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
+
+                # === YENI YIL / YILBASI ===
+                elif date_value == "new_year":
+                    # Son yilbasi gunu (1 Ocak)
+                    year = today.year if today.month > 1 or (today.month == 1 and today.day > 1) else today.year - 1
+                    new_year_date = datetime(year, 1, 1)
+                    return new_year_date.strftime("%Y-%m-%d"), new_year_date.strftime("%Y-%m-%d")
 
         # Varsayilan: dun
         return "yesterday", "yesterday"
