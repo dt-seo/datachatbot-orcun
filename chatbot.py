@@ -59,20 +59,94 @@ class GA4Chatbot:
             "pending_disambiguation": None  # Editor/yazar secimi bekliyor mu?
         }
 
-        # Tarih pattern'leri
+        # Tarih pattern'leri - kapsamli Turkce tarih ifadeleri
         self.date_patterns = {
+            # === BUGUN ===
             r"bug[uü]n": "today",
+            r"bug[uü]nk[uü]": "today",
+            r"g[uü]n[uü]m[uü]z": "today",
+            r"bug[uü]ne\s*kadar": "today",
+            r"bug[uü]n\s*i[cç]in": "today",
+
+            # === DUN ===
             r"d[uü]n": "yesterday",
+            r"d[uü]nk[uü]": "yesterday",
+            r"bir\s*[oö]nceki\s*g[uü]n": "yesterday",
+            r"evvelki\s*g[uü]n": "2daysAgo",  # evvelki gun = 2 gun once
+
+            # === SON X GUN ===
+            r"son\s*2\s*g[uü]n": "2daysAgo",
+            r"son\s*3\s*g[uü]n": "3daysAgo",
+            r"son\s*5\s*g[uü]n": "5daysAgo",
             r"son\s*7\s*g[uü]n": "7daysAgo",
-            r"son\s*bir?\s*hafta": "7daysAgo",
+            r"son\s*10\s*g[uü]n": "10daysAgo",
+            r"son\s*14\s*g[uü]n": "14daysAgo",
+            r"son\s*15\s*g[uü]n": "15daysAgo",
             r"son\s*30\s*g[uü]n": "30daysAgo",
-            r"son\s*bir?\s*ay": "30daysAgo",
+            r"son\s*60\s*g[uü]n": "60daysAgo",
             r"son\s*90\s*g[uü]n": "90daysAgo",
+
+            # === SON X HAFTA ===
+            r"son\s*bir?\s*hafta": "7daysAgo",
+            r"son\s*1\s*hafta": "7daysAgo",
+            r"son\s*2\s*hafta": "14daysAgo",
+            r"son\s*iki\s*hafta": "14daysAgo",
+            r"son\s*3\s*hafta": "21daysAgo",
+            r"son\s*[uü][cç]\s*hafta": "21daysAgo",
+            r"son\s*4\s*hafta": "28daysAgo",
+            r"son\s*d[oö]rt\s*hafta": "28daysAgo",
+
+            # === SON X AY ===
+            r"son\s*bir?\s*ay": "30daysAgo",
+            r"son\s*1\s*ay": "30daysAgo",
+            r"son\s*2\s*ay": "60daysAgo",
+            r"son\s*iki\s*ay": "60daysAgo",
             r"son\s*3\s*ay": "90daysAgo",
-            r"ge[cs][ct]i[gğ]imiz\s*hafta": "14daysAgo",  # gectigimiz hafta -> 14 gun once baslat
-            r"ge[cs]en\s*hafta": "14daysAgo",
-            r"ge[cs][ct]i[gğ]imiz\s*ay": "last_month",    # gectigimiz ay -> gecen ayin 1-son gunu
-            r"ge[cs]en\s*ay": "last_month",               # gecen ay
+            r"son\s*[uü][cç]\s*ay": "90daysAgo",
+            r"son\s*6\s*ay": "180daysAgo",
+            r"son\s*alt[i,ı]\s*ay": "180daysAgo",
+
+            # === SON X YIL ===
+            r"son\s*bir?\s*y[i,ı]l": "365daysAgo",
+            r"son\s*1\s*y[i,ı]l": "365daysAgo",
+
+            # === GECEN/GECTIGIMIZ HAFTA ===
+            r"ge[cçcs][cçct]i[gğ]imiz\s*hafta": "last_week",
+            r"ge[cçcs]en\s*hafta": "last_week",
+            r"[oö]nceki\s*hafta": "last_week",
+            r"bir\s*[oö]nceki\s*hafta": "last_week",
+            r"gecen\s*hafta": "last_week",
+            r"gectigimiz\s*hafta": "last_week",
+
+            # === GECEN/GECTIGIMIZ AY ===
+            r"ge[cçcs][cçct]i[gğ]imiz\s*ay": "last_month",
+            r"ge[cçcs]en\s*ay": "last_month",
+            r"[oö]nceki\s*ay": "last_month",
+            r"bir\s*[oö]nceki\s*ay": "last_month",
+            r"gecen\s*ay": "last_month",
+            r"gectigimiz\s*ay": "last_month",
+
+            # === BU HAFTA / BU AY ===
+            r"bu\s*hafta": "this_week",
+            r"bu\s*ay": "this_month",
+            r"i[cç]inde\s*bulundu[gğ]umuz\s*hafta": "this_week",
+            r"i[cç]inde\s*bulundu[gğ]umuz\s*ay": "this_month",
+            r"mevcut\s*hafta": "this_week",
+            r"mevcut\s*ay": "this_month",
+
+            # === BU YIL / GECEN YIL ===
+            r"bu\s*y[iı]l": "this_year",
+            r"ge[cçcs]en\s*y[iı]l": "last_year",
+            r"ge[cçcs][cçct]i[gğ]imiz\s*y[iı]l": "last_year",
+            r"[oö]nceki\s*y[iı]l": "last_year",
+            r"gecen\s*yil": "last_year",
+            r"gectigimiz\s*yil": "last_year",
+
+            # === HAFTA SONU / HAFTA ICI ===
+            r"ge[cçcs]en\s*hafta\s*sonu": "last_weekend",
+            r"ge[cçcs][cçct]i[gğ]imiz\s*hafta\s*sonu": "last_weekend",
+            r"gecen\s*hafta\s*sonu": "last_weekend",
+            r"bu\s*hafta\s*sonu": "this_weekend",
         }
 
         # Sorgu intent'leri - DIKKAT: Daha spesifik intent'ler once tanimlanmali
@@ -555,27 +629,81 @@ class GA4Chatbot:
         # Standart pattern'ler
         for pattern, date_value in self.date_patterns.items():
             if re.search(pattern, query_lower):
+                today = datetime.now()
+
+                # === BUGUN / DUN ===
                 if date_value == "today":
                     return "today", "today"
                 elif date_value == "yesterday":
                     return "yesterday", "yesterday"
-                elif date_value == "7daysAgo":
-                    return "7daysAgo", "yesterday"
-                elif date_value == "14daysAgo":
-                    return "14daysAgo", "8daysAgo"
-                elif date_value == "30daysAgo":
-                    return "30daysAgo", "yesterday"
-                elif date_value == "90daysAgo":
-                    return "90daysAgo", "yesterday"
+
+                # === SON X GUN (dinamik) ===
+                elif date_value.endswith("daysAgo"):
+                    days = int(date_value.replace("daysAgo", ""))
+                    start_date = today - timedelta(days=days)
+                    end_date = today - timedelta(days=1)  # dune kadar
+                    return start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")
+
+                # === GECEN HAFTA (Pazartesi-Pazar) ===
+                elif date_value == "last_week":
+                    # Gecen haftanin Pazartesi gunu
+                    days_since_monday = today.weekday()  # 0=Pazartesi
+                    this_monday = today - timedelta(days=days_since_monday)
+                    last_monday = this_monday - timedelta(days=7)
+                    last_sunday = last_monday + timedelta(days=6)
+                    return last_monday.strftime("%Y-%m-%d"), last_sunday.strftime("%Y-%m-%d")
+
+                # === GECEN AY (1 - son gun) ===
                 elif date_value == "last_month":
-                    # Gecen ay: onceki ayin 1'i - onceki ayin son gunu
-                    today = datetime.now()
-                    # Onceki ayin son gunu = bu ayin 1'i - 1 gun
                     first_of_this_month = today.replace(day=1)
                     last_day_of_prev_month = first_of_this_month - timedelta(days=1)
-                    # Onceki ayin ilk gunu
                     first_of_prev_month = last_day_of_prev_month.replace(day=1)
                     return first_of_prev_month.strftime("%Y-%m-%d"), last_day_of_prev_month.strftime("%Y-%m-%d")
+
+                # === BU HAFTA (Pazartesi - bugun) ===
+                elif date_value == "this_week":
+                    days_since_monday = today.weekday()
+                    this_monday = today - timedelta(days=days_since_monday)
+                    return this_monday.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")
+
+                # === BU AY (1 - bugun) ===
+                elif date_value == "this_month":
+                    first_of_this_month = today.replace(day=1)
+                    return first_of_this_month.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")
+
+                # === BU YIL (1 Ocak - bugun) ===
+                elif date_value == "this_year":
+                    first_of_year = today.replace(month=1, day=1)
+                    return first_of_year.strftime("%Y-%m-%d"), today.strftime("%Y-%m-%d")
+
+                # === GECEN YIL (1 Ocak - 31 Aralik) ===
+                elif date_value == "last_year":
+                    last_year = today.year - 1
+                    first_of_last_year = datetime(last_year, 1, 1)
+                    last_of_last_year = datetime(last_year, 12, 31)
+                    return first_of_last_year.strftime("%Y-%m-%d"), last_of_last_year.strftime("%Y-%m-%d")
+
+                # === GECEN HAFTA SONU (Cumartesi-Pazar) ===
+                elif date_value == "last_weekend":
+                    days_since_sunday = (today.weekday() + 1) % 7  # Pazar=0
+                    last_sunday = today - timedelta(days=days_since_sunday)
+                    if days_since_sunday == 0:  # Bugun Pazar ise gecen hafta sonunu al
+                        last_sunday = today - timedelta(days=7)
+                    last_saturday = last_sunday - timedelta(days=1)
+                    return last_saturday.strftime("%Y-%m-%d"), last_sunday.strftime("%Y-%m-%d")
+
+                # === BU HAFTA SONU ===
+                elif date_value == "this_weekend":
+                    days_until_saturday = (5 - today.weekday()) % 7
+                    if days_until_saturday == 0 and today.weekday() != 5:
+                        days_until_saturday = 7
+                    this_saturday = today + timedelta(days=days_until_saturday)
+                    this_sunday = this_saturday + timedelta(days=1)
+                    # Eger zaten hafta sonu ise bugunun tarihini kullan
+                    if today.weekday() >= 5:  # Cumartesi veya Pazar
+                        this_saturday = today - timedelta(days=today.weekday()-5) if today.weekday() == 6 else today
+                        this_sunday = this_saturday + timedelta(days=1)
+                    return this_saturday.strftime("%Y-%m-%d"), this_sunday.strftime("%Y-%m-%d")
 
         # Varsayilan: dun
         return "yesterday", "yesterday"
