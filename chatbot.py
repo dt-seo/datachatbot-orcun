@@ -904,25 +904,124 @@ class GA4Chatbot:
         return "yesterday", "yesterday"
 
     def _extract_category(self, query: str) -> Optional[str]:
-        """Sorgudan kategori cikar"""
+        """Sorgudan kategori cikar - kapsamli pattern destegi"""
+        # Her kategori icin birden fazla pattern
         categories = {
-            r"spor": "Spor",
-            r"ekonomi": "Ekonomi",
-            r"magazin": "Magazin",
-            r"g[uü]ndem": "Gundem",
-            r"siyaset": "Siyaset",
-            r"teknoloji": "Teknoloji",
-            r"sa[gğ]l[i,ı]k": "Saglik",
-            r"k[uü]lt[uü]r": "Kultur",
-            r"ya[sş]am": "Yasam",
-            r"otomobil": "Otomobil",
-            r"d[uü]nya": "Dunya",
+            "Spor": [
+                r"\bspor\b", r"futbol", r"basketbol", r"voleybol",
+                r"fenerbah[cç]e", r"galatasaray", r"be[sş]ikta[sş]", r"trabzonspor",
+                r"s[uü]per\s*lig", r"[sş]ampiyonlar\s*ligi", r"champions\s*league",
+                r"ma[cç]\s*sonu[cç]", r"puan\s*durumu", r"transfer",
+                r"milli\s*tak[iı]m", r"euro\s*\d+", r"olimpiyat",
+                r"tenis", r"formula", r"f1", r"motorsport",
+            ],
+            "Ekonomi": [
+                r"\bekonomi\b", r"ekonomik", r"finans", r"finansal",
+                r"borsa", r"bist", r"dolar", r"euro\b", r"alt[iı]n",
+                r"faiz", r"enflasyon", r"merkez\s*bankas[iı]",
+                r"kur", r"d[oö]viz", r"yat[iı]r[iı]m", r"hisse",
+                r"kripto", r"bitcoin", r"piyasa", r"ticaret",
+                r"i[sş]\s*d[uü]nyas[iı]", r"[sş]irket", r"vergi",
+            ],
+            "Magazin": [
+                r"\bmagazin\b", r"[uü]nl[uü]", r"[uü]nl[uü]ler",
+                r"sosyete", r"celebrity", r"[sş][oö]hret",
+                r"dizi", r"film", r"sinema", r"oyuncu",
+                r"[sş]ark[iı]c[iı]", r"sanat[cç][iı]", r"pop[uü]ler",
+                r"moda", r"fashion", r"g[uü]zellik", r"stil",
+                r"d[uü][gğ][uü]n", r"evlilik", r"bo[sş]anma",
+                r"dedikodu", r"scandal", r"olay",
+            ],
+            "Gundem": [
+                r"g[uü]ndem", r"g[uü]ncel", r"son\s*dakika",
+                r"breaking", r"fla[sş]", r"a[cç][iı]klama",
+                r"haberleri?\b", r"geli[sş]me",
+                r"olay", r"vaka", r"kaza", r"yang[iı]n",
+                r"deprem", r"sel", r"afet", r"do[gğ]al\s*afet",
+            ],
+            "Siyaset": [
+                r"siyaset", r"siyasi", r"politik", r"politika",
+                r"se[cç]im", r"oy", r"sand[iı]k", r"milletvekili",
+                r"cumhurba[sş]kan", r"ba[sş]bakan", r"bakan\b",
+                r"meclis", r"tbmm", r"h[uü]k[uü]met", r"muhalefet",
+                r"parti\b", r"akp", r"chp", r"mhp", r"iyi\s*parti",
+                r"belediye", r"vali", r"kaymakam",
+            ],
+            "Teknoloji": [
+                r"teknoloji", r"tech", r"bilim", r"bilimsel",
+                r"iphone", r"android", r"samsung", r"apple",
+                r"google", r"microsoft", r"facebook", r"meta",
+                r"yapay\s*zeka", r"ai\b", r"robot", r"otonom",
+                r"uzay", r"nasa", r"spacex", r"roket",
+                r"siber", r"hack", r"g[uü]venlik",
+                r"oyun", r"gaming", r"playstation", r"xbox",
+                r"uygulama", r"app", r"yaz[iı]l[iı]m", r"software",
+            ],
+            "Saglik": [
+                r"sa[gğ]l[iı]k", r"saglik", r"sağlık",
+                r"hastane", r"doktor", r"hekim", r"t[iı]p",
+                r"hastal[iı]k", r"tedavi", r"ila[cç]", r"a[sş][iı]",
+                r"covid", r"korona", r"vir[uü]s", r"grip",
+                r"kanser", r"diyabet", r"kalp", r"tansiyon",
+                r"diyet", r"beslenme", r"zay[iı]flama", r"kilo",
+                r"fitness", r"spor\s*sa[gğ]l[iı]k", r"psikoloji",
+            ],
+            "Kultur": [
+                r"k[uü]lt[uü]r", r"kultur", r"kültür",
+                r"sanat", r"sergi", r"m[uü]ze", r"tiyatro",
+                r"konser", r"festival", r"etkinlik",
+                r"kitap", r"yazar\b", r"edebiyat", r"roman",
+                r"tarih", r"tarihi", r"arkeoloji", r"antik",
+            ],
+            "Yasam": [
+                r"ya[sş]am", r"yasam", r"yaşam", r"lifestyle",
+                r"seyahat", r"gezi", r"tatil", r"turizm",
+                r"yemek", r"tarif", r"mutfak", r"restoran",
+                r"dekorasyon", r"ev", r"bahçe", r"garden",
+                r"aile", r"[cç]ocuk", r"e[gğ]itim", r"okul",
+                r"ili[sş]ki", r"a[sş]k", r"evlilik",
+                r"hobiler", r"el\s*i[sş]i", r"diy",
+            ],
+            "Otomobil": [
+                r"otomobil", r"araba", r"ara[cç]", r"car",
+                r"otomotiv", r"automotive", r"vas[iı]ta",
+                r"bmw", r"mercedes", r"audi", r"volkswagen",
+                r"toyota", r"honda", r"ford", r"renault",
+                r"elektrikli\s*ara[cç]", r"tesla", r"ev\s*car",
+                r"motor", r"yak[iı]t", r"benzin", r"dizel",
+                r"trafik", r"ehliyet", r"sigorta",
+            ],
+            "Dunya": [
+                r"d[uü]nya", r"dunya", r"dünya", r"world",
+                r"uluslararas[iı]", r"international", r"global",
+                r"abd", r"amerika", r"avrupa", r"rusya",
+                r"[cç]in", r"japonya", r"almanya", r"fransa",
+                r"ingiltere", r"[iİ]ngiltere", r"uk\b", r"eu\b",
+                r"orta\s*do[gğ]u", r"suriye", r"irak", r"iran",
+                r"sava[sş]", r"bar[iı][sş]", r"diplomasi",
+                r"bm\b", r"nato", r"birle[sş]mi[sş]\s*milletler",
+            ],
+            "Egitim": [
+                r"e[gğ]itim", r"egitim", r"eğitim", r"education",
+                r"okul", r"[uü]niversite", r"lise", r"ilkokul",
+                r"[oö][gğ]renci", r"[oö][gğ]retmen", r"hoca",
+                r"s[iı]nav", r"y[kö]s", r"lgs", r"kpss", r"ales",
+                r"burs", r"mezuniyet", r"diploma",
+            ],
+            "Astroloji": [
+                r"astroloji", r"bur[cç]", r"hor[ao]skop",
+                r"ko[cç]", r"bo[gğ]a", r"ikizler", r"yenge[cç]",
+                r"aslan", r"ba[sş]ak", r"terazi", r"akrep",
+                r"yay\b", r"o[gğ]lak", r"kova", r"bal[iı]k",
+                r"gezegen", r"y[iı]ld[iı]z", r"ay\s*tutulmas[iı]",
+            ],
         }
 
         query_lower = query.lower()
-        for pattern, category in categories.items():
-            if re.search(pattern, query_lower):
-                return category
+        for category, patterns in categories.items():
+            for pattern in patterns:
+                if re.search(pattern, query_lower):
+                    return category
 
         return None
 
@@ -944,48 +1043,262 @@ class GA4Chatbot:
         # GA4 newstype degerleri: haber, newsgaleri, video, gazete-haberi, yazar,
         # plus, seo-content-haber, ozel-haber, derleme-haber, viral, vb.
         newstype_patterns = {
-            # Video icerikleri
-            r"video\s*(icerik|içerik|haber)?": "video",
-            r"videolar": "video",
+            # === VIDEO ICERIKLERI ===
+            "video": [
+                r"video\s*(icerik|içerik|haber|i[cç]erikler)?",
+                r"videolar", r"video\s*haber",
+                r"canl[iı]\s*yay[iı]n", r"live\s*stream",
+                r"youtube", r"izle", r"izleme",
+                r"klip", r"video\s*klip",
+            ],
 
-            # Galeri icerikleri - GA4'te "newsgaleri" olarak geciyor
-            r"galeri\s*(icerik|içerik|haber)?": "newsgaleri",
-            r"galeriler": "newsgaleri",
-            r"foto\s*galeri": "newsgaleri",
+            # === GALERI ICERIKLERI (GA4: newsgaleri) ===
+            "newsgaleri": [
+                r"galeri\s*(icerik|içerik|haber|i[cç]erikler)?",
+                r"galeriler", r"foto\s*galeri",
+                r"resim\s*galeri", r"g[oö]rsel\s*galeri",
+                r"foto[gğ]raf\s*(galeri)?", r"image\s*gallery",
+                r"slide\s*show", r"slayt",
+            ],
 
-            # Normal haber/makale
-            r"makale": "haber",
-            r"yazi\s*(icerik)?": "yazar",  # yazar tipi
-            r"yazı\s*(icerik)?": "yazar",
-            r"kose\s*yaz": "yazar",  # kose yazisi
-            r"köşe\s*yaz": "yazar",
+            # === OZEL HABER (spesifik - once kontrol edilmeli) ===
+            "ozel-haber": [
+                r"[oö]zel\s*haber", r"ozel\s*haber",
+                r"exclusive", r"[oö]zel\s*dosya",
+                r"ara[sş]t[iı]rma\s*haber", r"investigative",
+                r"[oö]zel\s*r[oö]portaj",
+            ],
 
-            # Ozel haber
-            r"[oö]zel\s*haber": "ozel-haber",
+            # === AJANS HABERI (spesifik - once kontrol edilmeli) ===
+            "ajans-haberi": [
+                r"ajans\s*haber", r"wire", r"agency",
+                r"\baa\b", r"reuters", r"afp", r"\bdha\b",
+                r"anadolu\s*ajans",
+            ],
 
-            # Derleme haber
-            r"derleme": "derleme-haber",
+            # === BBC / DW HABERI (spesifik) ===
+            "bbc-haberi": [
+                r"bbc\s*haber", r"bbc\s*t[uü]rk[cç]e",
+            ],
+            "dw-haberi": [
+                r"dw\s*haber", r"deutsche\s*welle",
+            ],
 
-            # Plus icerikler
-            r"plus\s*(icerik|içerik)?": "plus",
-            r"premium": "plus",
+            # === YAZAR / KOSE YAZISI ===
+            "yazar": [
+                r"k[oö][sş]e\s*yaz[iı]", r"kose\s*yazisi", r"köşe\s*yazısı",
+                r"yorum\s*yaz[iı]", r"g[oö]r[uü][sş]", r"analiz",
+                r"yazar\s*(yaz[iı]|icerik|içerik)?",
+                r"opinion", r"editorial", r"k[oö][sş]e\s*yazar",
+                r"yazar\s*k[oö][sş]e",
+            ],
 
-            # Viral
-            r"viral": "viral",
+            # === HABER / MAKALE (genel - en son kontrol edilmeli) ===
+            "haber": [
+                r"(?<![oö]zel\s)(?<!ajans\s)\bhaber\b", # ozel haber ve ajans haber haric
+                r"haberler(?!\s*i)",  # haberleri haric (ajans haberleri gibi)
+                r"makale", r"makaleler",
+                r"man[sş]et", r"ba[sş]l[iı]k",
+                r"h[iı]k[aâ]ye", r"story",
+            ],
 
-            # Interaktif
-            r"interaktif": "interactive",
-            r"interactive": "interactive",
+            # === DERLEME HABER ===
+            "derleme-haber": [
+                r"derleme", r"compilation",
+                r"[oö]zet", r"summary",
+                r"toplu\s*haber", r"round\s*up",
+            ],
 
-            # Gazete haberi
-            r"gazete\s*(haber)?": "gazete-haberi",
+            # === PLUS / PREMIUM ===
+            "plus": [
+                r"plus\s*(icerik|içerik)?", r"premium",
+                r"[uü]yelik", r"membership",
+                r"[oö]zel\s*i[cç]erik", r"exclusive\s*content",
+                r"paral[iı]\s*i[cç]erik",
+            ],
+
+            # === VIRAL ===
+            "viral": [
+                r"viral", r"trending", r"pop[uü]ler",
+                r"[cç]ok\s*payla[sş][iı]lan", r"most\s*shared",
+                r"sosyal\s*medya\s*fenomen",
+            ],
+
+            # === INTERAKTIF ===
+            "interactive": [
+                r"interaktif", r"interactive",
+                r"etkile[sş]imli", r"anket", r"quiz",
+                r"test\b", r"oyun\s*haber",
+            ],
+
+            # === GAZETE HABERI ===
+            "gazete-haberi": [
+                r"gazete\s*haber", r"bas[iı]l[iı]\s*haber",
+                r"print", r"gazete\s*man[sş]et",
+                r"gazete\s*sayfas[iı]",
+            ],
+
+            # === SEO CONTENT ===
+            "seo-content-haber": [
+                r"seo\s*(content|i[cç]erik)?",
+                r"evergreen", r"rehber",
+                r"nas[iı]l\s*yap[iı]l[iı]r", r"how\s*to",
+                r"en\s*iyi\s*\d+", r"top\s*\d+\s*list",
+            ],
         }
 
-        for pattern, newstype in newstype_patterns.items():
-            if re.search(pattern, query_lower):
-                return newstype
+        for newstype, patterns in newstype_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, query_lower):
+                    return newstype
 
         return None
+
+    def _extract_limit(self, query: str) -> Optional[int]:
+        """
+        Sorgudan sonuc limitini cikar.
+
+        Ornek sorgular:
+        - "en cok 10 editor"
+        - "top 5 kategori"
+        - "ilk 20 haber"
+
+        Returns:
+            Limit sayisi veya None
+        """
+        query_lower = query.lower()
+
+        # Limit pattern'leri
+        limit_patterns = [
+            # top X, en cok X
+            (r"top\s*(\d+)", 1),
+            (r"en\s*[cç]ok\s*(\d+)", 1),
+            (r"en\s*fazla\s*(\d+)", 1),
+            (r"en\s*y[uü]ksek\s*(\d+)", 1),
+            (r"en\s*iyi\s*(\d+)", 1),
+
+            # ilk X, ilk X tane
+            (r"ilk\s*(\d+)", 1),
+            (r"ba[sş]ta(ki)?\s*(\d+)", 2),
+
+            # son X, son X tane
+            (r"son\s*(\d+)\s*(tane|adet)?(?!\s*(g[uü]n|hafta|ay|y[iı]l))", 1),
+
+            # X tane, X adet
+            (r"(\d+)\s*tane", 1),
+            (r"(\d+)\s*adet", 1),
+
+            # en az X
+            (r"en\s*az\s*(\d+)", 1),
+
+            # limit X
+            (r"limit\s*(\d+)", 1),
+        ]
+
+        for pattern, group in limit_patterns:
+            match = re.search(pattern, query_lower)
+            if match:
+                try:
+                    return int(match.group(group))
+                except (ValueError, IndexError):
+                    pass
+
+        # Varsayilan limit pattern'leri (sayi olmadan)
+        default_limits = {
+            r"en\s*[cç]ok": 10,
+            r"en\s*pop[uü]ler": 10,
+            r"en\s*ba[sş]ar[iı]l[iı]": 10,
+            r"en\s*y[uü]ksek": 10,
+            r"en\s*d[uü][sş][uü]k": 10,
+            r"en\s*az": 10,
+        }
+
+        for pattern, default in default_limits.items():
+            if re.search(pattern, query_lower):
+                return default
+
+        return None
+
+    def _extract_sort_order(self, query: str) -> Optional[str]:
+        """
+        Sorgudan siralama yonunu cikar.
+
+        Returns:
+            "desc" (buyukten kucuge) veya "asc" (kucukten buyuge) veya None
+        """
+        query_lower = query.lower()
+
+        # Azalan siralama (desc)
+        desc_patterns = [
+            r"en\s*[cç]ok", r"en\s*fazla", r"en\s*y[uü]ksek",
+            r"en\s*pop[uü]ler", r"en\s*ba[sş]ar[iı]l[iı]",
+            r"b[uü]y[uü]kten\s*k[uü][cç][uü][gğ]e",
+            r"azalan", r"descending", r"desc\b",
+            r"top\s*\d*", r"en\s*iyi",
+        ]
+
+        # Artan siralama (asc)
+        asc_patterns = [
+            r"en\s*az", r"en\s*d[uü][sş][uü]k", r"en\s*k[oö]t[uü]",
+            r"k[uü][cç][uü]kten\s*b[uü]y[uü][gğ]e",
+            r"artan", r"ascending", r"asc\b",
+            r"en\s*son", r"sondan",
+        ]
+
+        for pattern in desc_patterns:
+            if re.search(pattern, query_lower):
+                return "desc"
+
+        for pattern in asc_patterns:
+            if re.search(pattern, query_lower):
+                return "asc"
+
+        return None
+
+    def _extract_comparison(self, query: str) -> Optional[Dict]:
+        """
+        Sorgudan karsilastirma bilgisi cikar.
+
+        Ornek sorgular:
+        - "ahmet hakan vs elif okutan"
+        - "spor ile ekonomi karsilastir"
+        - "bu hafta gecen haftaya gore"
+
+        Returns:
+            Karsilastirma dict veya None
+        """
+        query_lower = query.lower()
+
+        comparison = None
+
+        # VS pattern'i
+        vs_match = re.search(r"(\w+(?:\s+\w+)?)\s+(?:vs|versus|kar[sş][iı])\s+(\w+(?:\s+\w+)?)", query_lower)
+        if vs_match:
+            comparison = {
+                "type": "vs",
+                "item1": vs_match.group(1).strip(),
+                "item2": vs_match.group(2).strip(),
+            }
+
+        # Karsilastir pattern'i
+        kar_match = re.search(r"(\w+(?:\s+\w+)?)\s+ile\s+(\w+(?:\s+\w+)?)\s*kar[sş][iı]la[sş]t[iı]r", query_lower)
+        if kar_match:
+            comparison = {
+                "type": "compare",
+                "item1": kar_match.group(1).strip(),
+                "item2": kar_match.group(2).strip(),
+            }
+
+        # Gore pattern'i (donem karsilastirmasi)
+        gore_match = re.search(r"(bu\s*(?:hafta|ay|y[iı]l))\s+(?:ge[cç]en|[oö]nceki)\s*(?:hafta|ay|y[iı]l)(?:a|ya)?\s*g[oö]re", query_lower)
+        if gore_match:
+            comparison = {
+                "type": "period",
+                "current": gore_match.group(1).strip(),
+                "previous": "previous",
+            }
+
+        return comparison
 
     def _extract_publish_date_range(self, query: str) -> Optional[Tuple[str, str]]:
         """
@@ -1124,18 +1437,6 @@ class GA4Chatbot:
             return f"{date_obj.day} {months_tr[date_obj.month]} {date_obj.year}"
         except ValueError:
             return ga4_date
-
-    def _extract_limit(self, query: str) -> int:
-        """Sorgudan limit cikar"""
-        match = re.search(r"(\d+)\s*(tane|adet|sayfa|haber)", query.lower())
-        if match:
-            return min(int(match.group(1)), 100)
-
-        match = re.search(r"(ilk|top)\s*(\d+)", query.lower())
-        if match:
-            return min(int(match.group(2)), 100)
-
-        return 10  # Varsayilan
 
     def _extract_editor_name(self, query: str) -> Optional[str]:
         """
@@ -2427,6 +2728,10 @@ Hizli erisim icin 'yardim' yazin veya numara girin.
             "newstype": None,         # Newstype/pagetype filtresi (video, galeri, haber, vb.)
             "filters": {},            # Diger filtreler
             "query_type": None,       # "person_metric", "simple_metric", "dimension_breakdown", "complex"
+            "limit": None,            # Sonuc limiti (top 10, ilk 5, vb.)
+            "sort_order": None,       # Siralama yonu ("desc" veya "asc")
+            "sort_by": None,          # Siralama kriteri (metrik adi)
+            "comparison": None,       # Karsilastirma turu ("vs", "kar", vb.)
         }
 
         # 1. Tarih analizi
@@ -2455,19 +2760,115 @@ Hizli erisim icin 'yardim' yazin veya numara girin.
         # 2.5. Newstype/pagetype analizi - icerik turu filtresi
         analysis["newstype"] = self._extract_newstype(query)
 
+        # 2.6. Limit analizi - kac sonuc isteniyor?
+        analysis["limit"] = self._extract_limit(query)
+
+        # 2.7. Siralama analizi - nasil siralansin?
+        analysis["sort_order"] = self._extract_sort_order(query)
+
+        # 2.8. Karsilastirma analizi - karsilastirma var mi?
+        analysis["comparison"] = self._extract_comparison(query)
+
         # 3. Metrik analizi - hangi metrik isteniyor?
-        if re.search(r"kullan[i,ı]c[i,ı]|ki[sş]i|ziyaret[cç]i", query_lower):
-            analysis["metric"] = "totalUsers"
-            analysis["metric_name"] = "Kullanici"
-        elif re.search(r"oturum|session", query_lower):
-            analysis["metric"] = "sessions"
-            analysis["metric_name"] = "Oturum"
-        elif re.search(r"g[oö]r[uü]nt[uü]len|view|pageview", query_lower):
-            analysis["metric"] = "screenPageViews"
-            analysis["metric_name"] = "Sayfa Goruntuleme"
-        elif re.search(r"t[i,ı]klama|click", query_lower):
-            analysis["metric"] = "screenPageViews"
-            analysis["metric_name"] = "Sayfa Goruntuleme"
+        # Metrik pattern'leri - kapsamli
+        # NOT: Daha spesifik pattern'ler (yeni kullanici, geri donen) ONCE kontrol edilmeli
+        metric_patterns = [
+            # === YENI KULLANICI (spesifik - once kontrol edilmeli) ===
+            ("newUsers", {
+                "patterns": [
+                    r"yeni\s*kullan[iı]c[iı]", r"new\s*user",
+                    r"ilk\s*kez\s*gelen", r"first\s*time",
+                    r"yeni\s*ziyaret[cç]i", r"yeni\s*gelen",
+                ],
+                "name": "Yeni Kullanici"
+            }),
+            # === GERI DONEN KULLANICI (spesifik - once kontrol edilmeli) ===
+            ("returningUsers", {
+                "patterns": [
+                    r"geri\s*d[oö]nen", r"returning",
+                    r"tekrar\s*gelen", r"sad[iı]k\s*kullan[iı]c[iı]",
+                    r"mevcut\s*kullan[iı]c[iı]", r"eski\s*kullan[iı]c[iı]",
+                ],
+                "name": "Geri Donen Kullanici"
+            }),
+            # === ETKILESIM / ENGAGEMENT ===
+            ("engagementRate", {
+                "patterns": [
+                    r"etkile[sş]im\s*oran", r"etkilesim\s*oran", r"etkileşim\s*oran",
+                    r"engagement\s*rate", r"engagement",
+                    r"ba[gğ]l[iı]l[iı]k", r"baglilik", r"bağlılık",
+                ],
+                "name": "Etkilesim Orani"
+            }),
+            # === ORTALAMA SURE ===
+            ("averageSessionDuration", {
+                "patterns": [
+                    r"ortalama\s*s[uü]re", r"ort\.?\s*s[uü]re",
+                    r"oturum\s*s[uü]re", r"session\s*duration",
+                    r"kalma\s*s[uü]re", r"sitede\s*kalma",
+                    r"ge[cç]irilen\s*s[uü]re",
+                ],
+                "name": "Ortalama Sure"
+            }),
+            # === HEMEN CIKMA / BOUNCE ===
+            ("bounceRate", {
+                "patterns": [
+                    r"hemen\s*[cç][iı]kma", r"bounce\s*rate", r"bounce",
+                    r"tek\s*sayfa", r"single\s*page",
+                    r"[cç][iı]kma\s*oran", r"cikma\s*oran", r"çıkma\s*oran",
+                ],
+                "name": "Hemen Cikma Orani"
+            }),
+            # === KULLANICI / USER (genel - sonra kontrol edilmeli) ===
+            ("totalUsers", {
+                "patterns": [
+                    r"kullan[iı]c[iı]", r"kullanici", r"kullanıcı",
+                    r"ki[sş]i", r"kisi", r"kişi",
+                    r"ziyaret[cç]i", r"ziyaretci", r"ziyaretçi",
+                    r"unique\s*user", r"tekil\s*kullan[iı]c[iı]",
+                    r"user\s*say[iı]s[iı]", r"kac\s*kisi", r"kaç\s*kişi",
+                    r"toplam\s*kullan[iı]c[iı]", r"aktif\s*kullan[iı]c[iı]",
+                ],
+                "name": "Kullanici"
+            }),
+            # === OTURUM / SESSION ===
+            ("sessions", {
+                "patterns": [
+                    r"oturum", r"session",
+                    r"ziyaret\b", r"visit",
+                    r"giri[sş]\b", r"giris\b", r"giriş\b",
+                    r"oturum\s*say[iı]s[iı]", r"session\s*count",
+                    r"toplam\s*oturum", r"aktif\s*oturum",
+                ],
+                "name": "Oturum"
+            }),
+            # === SAYFA GORUNTULEME / PAGEVIEW ===
+            ("screenPageViews", {
+                "patterns": [
+                    r"g[oö]r[uü]nt[uü]len", r"goruntuleme", r"görüntülenme",
+                    r"goruntulenme", r"görüntüleme",
+                    r"view", r"views", r"pageview", r"page\s*view",
+                    r"sayfa\s*g[oö]r[uü]nt[uü]", r"sayfa\s*view",
+                    r"t[iı]klama", r"tiklama", r"tıklama", r"click",
+                    r"okuma", r"okunma", r"hit",
+                    r"izlenme", r"eri[sş]im", r"erisim", r"erişim",
+                    r"trafik", r"traffic",
+                    r"ka[cç]\s*kez", r"kac\s*kez", r"kaç\s*kez",
+                    r"ka[cç]\s*defa", r"kac\s*defa", r"kaç\s*defa",
+                ],
+                "name": "Sayfa Goruntuleme"
+            }),
+        ]
+
+        # Metrik eslestirme (sirayla kontrol et)
+        for metric_key, metric_data in metric_patterns:
+            for pattern in metric_data["patterns"]:
+                if re.search(pattern, query_lower):
+                    analysis["metric"] = metric_key
+                    analysis["metric_name"] = metric_data["name"]
+                    break
+            if analysis["metric"]:
+                break
 
         # 4. Kisi analizi - yazar veya editor ismi var mi?
         # "yazar xxx yyy" veya "editor xxx yyy" pattern'i (iki kelimeli isim destegi)
