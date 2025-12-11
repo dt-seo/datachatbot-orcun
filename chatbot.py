@@ -939,11 +939,10 @@ class GA4Chatbot:
                 r"dedikodu", r"scandal", r"olay",
             ],
             "Gundem": [
-                r"g[uü]ndem", r"g[uü]ncel", r"son\s*dakika",
-                r"breaking", r"fla[sş]", r"a[cç][iı]klama",
-                r"haberleri?\b", r"geli[sş]me",
-                r"olay", r"vaka", r"kaza", r"yang[iı]n",
-                r"deprem", r"sel", r"afet", r"do[gğ]al\s*afet",
+                r"\bg[uü]ndem\b", r"g[uü]ndem\s*haber",
+                r"son\s*dakika", r"breaking",
+                r"fla[sş]\s*haber",
+                # NOT: "haberleri" cok genis - gundem icin spesifik olmali
             ],
             "Siyaset": [
                 r"siyaset", r"siyasi", r"politik", r"politika",
@@ -2877,7 +2876,19 @@ Hizli erisim icin 'yardim' yazin veya numara girin.
                 break
 
         # 4. Kisi analizi - yazar veya editor ismi var mi?
-        # "yazar xxx yyy" veya "editor xxx yyy" pattern'i (iki kelimeli isim destegi)
+        # 4.1 Önce "en çok X alan editör kim" pattern'ini kontrol et
+        # Bu pattern'de isim yok, sıralama isteniyor
+        top_editor_pattern = re.search(
+            r"(en\s*[cç]ok|en\s*fazla|en\s*y[uü]ksek|top)\s+.*?(edit[oö]r|yazar)\s*(kim|hangisi|kimdi|kimdir)?",
+            query_lower
+        )
+        if top_editor_pattern:
+            person_type = "editor" if "edit" in top_editor_pattern.group(2) else "author"
+            analysis["person_type"] = person_type
+            analysis["query_type"] = "top_editors"  # Özel query tipi
+            # person boş kalacak çünkü sıralama isteniyor
+
+        # 4.2 "yazar xxx yyy" veya "editor xxx yyy" pattern'i (iki kelimeli isim destegi)
         # Iki kelimeli yazar ismi dene
         yazar_match_2 = re.search(r"yazar\s+(\w+)\s+(\w+)", query_lower)
         # Tek kelimeli yazar ismi
@@ -2933,7 +2944,7 @@ Hizli erisim icin 'yardim' yazin veya numara girin.
                          "ocak", "subat", "şubat", "mart", "nisan", "mayis", "mayıs",
                          "haziran", "temmuz", "agustos", "ağustos", "eylul", "eylül",
                          "ekim", "kasim", "kasım", "aralik", "aralık", "geldi", "oldu",
-                         "ne", "nasil", "nasıl", "hangi", "nerede", "kim", "kimin",
+                         "ne", "nasil", "nasıl", "hangi", "nerede", "kim", "kimin", "kimdi", "kimdir", "hangisi", "hangisiydi",
                          # Yayin tarihi ile ilgili kelimeler
                          "gecen", "geçen", "gectigimiz", "geçtiğimiz", "gectigi", "geçtiği",
                          "yayinladigi", "yayınladığı", "yayinlanan", "yayınlanan",
@@ -2971,15 +2982,16 @@ Hizli erisim icin 'yardim' yazin veya numara girin.
                             analysis["person"] = candidate
                             analysis["person_type"] = "editor"
 
-        # 5. Query type belirleme
-        if analysis["person"]:
-            analysis["query_type"] = "person_metric"
-        elif analysis["metric"] and not analysis["category"]:
-            analysis["query_type"] = "simple_metric"
-        elif analysis["category"]:
-            analysis["query_type"] = "category_metric"
-        else:
-            analysis["query_type"] = "complex"
+        # 5. Query type belirleme (top_editors zaten belirlendiyse override etme)
+        if analysis["query_type"] != "top_editors":
+            if analysis["person"]:
+                analysis["query_type"] = "person_metric"
+            elif analysis["metric"] and not analysis["category"]:
+                analysis["query_type"] = "simple_metric"
+            elif analysis["category"]:
+                analysis["query_type"] = "category_metric"
+            else:
+                analysis["query_type"] = "complex"
 
         return analysis
 
@@ -2991,6 +3003,10 @@ Hizli erisim icin 'yardim' yazin veya numara girin.
             Sonuc string veya None (baska handler'a devretmek icin)
         """
         query_type = analysis["query_type"]
+
+        # Top editors sorgusu - "en çok X alan editör kim"
+        if query_type == "top_editors":
+            return self._handle_top_editors(analysis)
 
         # Kisi bazli metrik sorgusu (metric None olsa bile varsayilan screenPageViews kullanilir)
         if query_type == "person_metric" and analysis["person"]:
@@ -3005,6 +3021,107 @@ Hizli erisim icin 'yardim' yazin veya numara girin.
             return self._handle_category_metric(analysis)
 
         return None  # Diger handler'lara devret
+
+    def _handle_top_editors(self, analysis: Dict) -> str:
+        """
+        En çok X alan editör/yazar kim sorgusu.
+        Editörleri/yazarları metriğe göre sıralar.
+        """
+        person_type = analysis.get("person_type", "editor")
+        start_date, end_date = analysis["date_range"]
+        metric = analysis.get("metric") or "screenPageViews"
+        metric_name = analysis.get("metric_name") or "Sayfa Goruntuleme"
+        limit = analysis.get("limit") or 10
+        category = analysis.get("category")
+        newstype = analysis.get("newstype")
+
+        # Dimension belirleme
+        dimension = "editor" if person_type == "editor" else "author"
+
+        # Tarih formatı
+        if start_date == "today":
+            start_display = "Bugün"
+        elif start_date == "yesterday":
+            start_display = "Dün"
+        else:
+            start_display = self._format_publish_date(start_date)
+
+        if end_date == "today":
+            end_display = "Bugün"
+        elif end_date == "yesterday":
+            end_display = "Dün"
+        else:
+            end_display = self._format_publish_date(end_date)
+
+        try:
+            # Filtreler
+            filters = {}
+            if category:
+                filters["category1"] = category
+            if newstype:
+                filters["newstype"] = newstype
+
+            # GA4 sorgusu - dimension'a göre grupla
+            df = self.client.run_query(
+                dimensions=[dimension],
+                metrics=[metric],
+                start_date=start_date,
+                end_date=end_date,
+                filters=filters if filters else None,
+                limit=limit * 3  # Filtreleme sonrası yeterli veri kalsın
+            )
+
+            if df.empty:
+                return f"Bu tarih aralığında {dimension} verisi bulunamadı."
+
+            # (not set) değerleri filtrele
+            df = self._filter_not_set_rows(df)
+
+            if df.empty:
+                return f"Bu tarih aralığında geçerli {dimension} verisi bulunamadı."
+
+            # DataFrame sütun isimlerini al (ilk sütun dimension, ikinci metric)
+            dim_col = df.columns[0]  # Editör veya Author
+            metric_col = df.columns[1]  # Oturum Sayısı, Görüntüleme vb.
+
+            # Metriğe göre sırala (büyükten küçüğe)
+            df = df.sort_values(by=metric_col, ascending=False).head(limit)
+
+            # Editör isimleri için gerçek isim eşleştirmesi
+            if dimension == "editor":
+                df["Gercek Isim"] = df[dim_col].apply(
+                    lambda x: self.editor_matcher.get_real_name(x) or x
+                )
+                display_col = "Gercek Isim"
+            else:
+                display_col = dim_col
+
+            # Sonuç formatla
+            lines = []
+            if start_date == end_date or start_date in ["today", "yesterday"]:
+                lines.append(f"📊 {start_display} - En Çok {metric_name} Alan {person_type.title()}ler:")
+            else:
+                lines.append(f"📊 {start_display} - {end_display} - En Çok {metric_name} Alan {person_type.title()}ler:")
+
+            lines.append("")
+
+            for i, (_, row) in enumerate(df.iterrows(), 1):
+                name = row[display_col]
+                value = row[metric_col]
+                if metric in ["engagementRate", "bounceRate"]:
+                    lines.append(f"{i}. {name}: %{value:.2f}")
+                elif metric == "averageSessionDuration":
+                    # Saniyeyi dakika:saniye formatına çevir
+                    mins = int(value // 60)
+                    secs = int(value % 60)
+                    lines.append(f"{i}. {name}: {mins}:{secs:02d}")
+                else:
+                    lines.append(f"{i}. {name}: {value:,.0f}")
+
+            return "\n".join(lines)
+
+        except Exception as e:
+            return f"Top {dimension} sorgusu hatası: {str(e)}"
 
     def _handle_person_metric(self, analysis: Dict) -> str:
         """Kisi bazli metrik sorgusu - analiz edilmis"""
@@ -3316,7 +3433,7 @@ Hizli erisim icin 'yardim' yazin veya numara girin.
         analysis = self._analyze_query(query)
 
         # Analiz basarili olduysa, analiz edilmis sorguyu isle
-        if analysis["query_type"] in ["person_metric", "simple_metric", "category_metric"]:
+        if analysis["query_type"] in ["person_metric", "simple_metric", "category_metric", "top_editors"]:
             result = self._handle_analyzed_query(query, analysis)
             if result:
                 return result
