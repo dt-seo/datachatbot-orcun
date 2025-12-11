@@ -1,0 +1,16 @@
+# GA4 Chatbot - Haber Sitesi Analytics
+# =====================================
+
+# Google Analytics Data API
+google-analytics-data>=0.18.0
+google-auth>=2.0.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Excel Export (opsiyonel - veri export için)
+openpyxl>=3.0.0
+
+# Web Interface
+streamlit>=1.28.0
