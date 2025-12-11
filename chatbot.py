@@ -71,6 +71,8 @@ class GA4Chatbot:
             r"son\s*3\s*ay": "90daysAgo",
             r"ge[cs][ct]i[gğ]imiz\s*hafta": "14daysAgo",  # gectigimiz hafta -> 14 gun once baslat
             r"ge[cs]en\s*hafta": "14daysAgo",
+            r"ge[cs][ct]i[gğ]imiz\s*ay": "last_month",    # gectigimiz ay -> gecen ayin 1-son gunu
+            r"ge[cs]en\s*ay": "last_month",               # gecen ay
         }
 
         # Sorgu intent'leri - DIKKAT: Daha spesifik intent'ler once tanimlanmali
@@ -565,6 +567,15 @@ class GA4Chatbot:
                     return "30daysAgo", "yesterday"
                 elif date_value == "90daysAgo":
                     return "90daysAgo", "yesterday"
+                elif date_value == "last_month":
+                    # Gecen ay: onceki ayin 1'i - onceki ayin son gunu
+                    today = datetime.now()
+                    # Onceki ayin son gunu = bu ayin 1'i - 1 gun
+                    first_of_this_month = today.replace(day=1)
+                    last_day_of_prev_month = first_of_this_month - timedelta(days=1)
+                    # Onceki ayin ilk gunu
+                    first_of_prev_month = last_day_of_prev_month.replace(day=1)
+                    return first_of_prev_month.strftime("%Y-%m-%d"), last_day_of_prev_month.strftime("%Y-%m-%d")
 
         # Varsayilan: dun
         return "yesterday", "yesterday"
