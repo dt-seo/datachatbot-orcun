@@ -147,7 +147,9 @@ class GA4Chatbot:
             r"son\s*365\s*g[uü]n": "365daysAgo",
 
             # === SON X HAFTA ===
-            r"son\s*bir?\s*hafta": "7daysAgo",
+            # "son hafta" = gecen hafta (last_week), "son 1 hafta" = son 7 gun
+            r"son\s*hafta\b": "last_week",
+            r"son\s*bir\s*hafta": "7daysAgo",
             r"son\s*1\s*hafta": "7daysAgo",
             r"son\s*2\s*hafta": "14daysAgo",
             r"son\s*iki\s*hafta": "14daysAgo",
@@ -163,7 +165,9 @@ class GA4Chatbot:
             r"son\s*sekiz\s*hafta": "56daysAgo",
 
             # === SON X AY ===
-            r"son\s*bir?\s*ay": "30daysAgo",
+            # "son ay" = gecen ay (last_month), "son 1 ay" = son 30 gun
+            r"son\s*ay\b": "last_month",
+            r"son\s*bir\s*ay": "30daysAgo",
             r"son\s*1\s*ay": "30daysAgo",
             r"son\s*2\s*ay": "60daysAgo",
             r"son\s*iki\s*ay": "60daysAgo",
@@ -182,7 +186,9 @@ class GA4Chatbot:
             r"son\s*on\s*iki\s*ay": "365daysAgo",
 
             # === SON X YIL ===
-            r"son\s*bir?\s*y[iı]l": "365daysAgo",
+            # "son yil" = gecen yil (last_year), "son 1 yil" = son 365 gun
+            r"son\s*y[iı]l\b": "last_year",
+            r"son\s*bir\s*y[iı]l": "365daysAgo",
             r"son\s*1\s*y[iı]l": "365daysAgo",
             r"son\s*2\s*y[iı]l": "730daysAgo",
             r"son\s*iki\s*y[iı]l": "730daysAgo",
